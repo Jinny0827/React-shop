@@ -2,11 +2,13 @@
 
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import {Container, Nav, Navbar, NavDropdown} from "react-bootstrap";
+import {Container, Nav, Navbar} from "react-bootstrap";
 import data from './data.js';
 import {useState} from "react";
-import {Routes, Route, Link, useParams} from "react-router-dom";
-
+import {Link, Route, Routes, useNavigate, Outlet} from "react-router-dom";
+import Detail from "./routes/Detail";
+import NotFound from "./routes/NotFound";
+import axios from "axios";
 
 
 // 상품 목록에 대한 컴포넌트화
@@ -23,7 +25,10 @@ function Card({item}) {
 }
 
 // 홈페이지의 내용 컴포넌트화
-function Home({bowls}) {
+function Home({bowls, setBowls}) {
+    // 더보기 클릭 여부에 대한 state 변수
+    let [clicked, setClicked] = useState(false);
+
     return (
         <>
             {/* 대문 사진*/}
@@ -38,59 +43,40 @@ function Home({bowls}) {
                     }
                 </div>
             </div>
+            <button onClick={() => {
+                axios.get('https://codingapple1.github.io/shop/data2.json')
+                    .then((response) => {
+                        setBowls([...bowls, ...response.data]);
+                        setClicked(true);
+                    })
+                    .catch((e) => {
+                        console.error("데이터 로딩 실패 : ", e);
+                        alert('데이터를 불러오는데 실패했습니다.')
+                    })
+                    .finally(() => {
+                        setClicked(false);
+                    })
+            }}>더보기</button>
         </>
     );
 }
 
-// 상세페이지 컴포넌트화 - URL 파라미터와 데이터 사용
-function Detail({bowls}) {
-    let {id} = useParams();
-    let findItem = bowls.find(item => item.id == id);
-
-    console.log(id);
-
-    if(!findItem && !id) {
-        return (
-            <div className="container">
-                <div className="alert alert-danger">
-                    상품을 찾을 수 없습니다.
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className="container">
-            <div className="row">
-                <div className="col-md-6">
-                    <img src={findItem.image} width="100%" alt={findItem.title} />
-                </div>
-                <div className="col-md-6">
-                    <h4 className="pt-5">{findItem.title}</h4>
-                    <p>{findItem.content}</p>
-                    <p>{findItem.price}원</p>
-                    <button className="btn btn-danger">주문하기</button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-
 function App() {
 
-    let [bowls] = useState(data);
+    let [bowls, setBowls] = useState(data);
+    let navigate = useNavigate();
+
 
   return (
     <div className="App">
         <Navbar expand="lg" className="bg-body-tertiary">
             <Container>
-                <Navbar.Brand href="#home">Bowling-shop</Navbar.Brand>
+                <Navbar.Brand onClick={() => {navigate('/')}}>Bowling-shop</Navbar.Brand>
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="me-auto">
-                        <Nav.Link href="/">Home</Nav.Link>
-                        <Nav.Link href="/detail">Cart</Nav.Link>
+                        <Nav.Link onClick={ () => { navigate('/') }}>Home</Nav.Link>
+                        <Nav.Link onClick={ () => { navigate('/detail') }}>Cart</Nav.Link>
                         {/*<NavDropdown title="Dropdown" id="basic-nav-dropdown">*/}
                         {/*    <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>*/}
                         {/*    <NavDropdown.Item href="#action/3.2">*/}
@@ -110,12 +96,44 @@ function App() {
         {/*이동된 URL에 대한 라우팅 설정*/}
         <Routes>
             {/*Route의 컴포넌트화*/}
-            <Route path="/" element={<Home bowls={bowls}/>}>
-            </Route>
+            <Route path="/" element={<Home bowls={bowls} setBowls = {setBowls}/>}/>
             <Route path="/detail/:id?" element={<Detail bowls={bowls}/>}/>
+            <Route path="*" element={<NotFound/>}/>
+
+            {/*Nested Route 테스트*/}
+            <Route path="/event" element={<Event/>}>
+                <Route path="one" element={<One/>}></Route>
+                <Route path="two" element={<Two/>}></Route>
+            </Route>
         </Routes>
     </div>
   );
+}
+
+function Event() {
+    return (
+        <div>
+            <h4>오늘의 이벤트</h4>
+            <Outlet></Outlet>
+        </div>
+    );
+}
+
+function One() {
+    return (
+        <div>
+            <p>볼링공 1+1 이벤트</p>
+        </div>
+    );
+}
+
+
+function Two() {
+    return (
+        <div>
+            <p>볼링화 1+1 이벤트</p>
+        </div>
+    );
 }
 
 
