@@ -1,10 +1,21 @@
+/*탭 전환 애니메이션 */
+.start {
+  opacity: 0;
+}
+
+.end {
+  opacity: 1;
+  transition: opacity 0.5s;
+}
+
+
+/* 메인페이지 배경 이미지 */
 .main-bg {
   height: 300px;
   background-image: url('./img/LT-48.jpg');
   background-size: cover;
   background-position: center;
 }
-
 
 .App {
   text-align: center;

@@ -5,10 +5,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import {Container, Nav, Navbar} from "react-bootstrap";
 import data from './data.js';
 import {useState} from "react";
-import {Link, Route, Routes, useNavigate, Outlet} from "react-router-dom";
+import {Link, Route, Routes, useNavigate} from "react-router-dom";
 import Detail from "./routes/Detail";
 import NotFound from "./routes/NotFound";
 import axios from "axios";
+import Event, {One, Two} from "./routes/Event";
 
 
 // 상품 목록에 대한 컴포넌트화
@@ -26,13 +27,23 @@ function Card({item}) {
 
 // 홈페이지의 내용 컴포넌트화
 function Home({bowls, setBowls}) {
-    // 더보기 클릭 여부에 대한 state 변수
-    let [clicked, setClicked] = useState(false);
+    // 버튼 누른 횟수 저장 state 변수
+    let [clickCount, setClickCount] = useState(0);
+    // 로딩 상태 관리 state 변수
+    let [loading, setLoading] = useState(false);
+    
+
+    // 호출해올 API 주소들
+    let urls= [
+        'https://codingapple1.github.io/shop/data2.json',
+        'https://codingapple1.github.io/shop/data3.json'
+    ]
 
     return (
         <>
             {/* 대문 사진*/}
             <div className="main-bg"></div>
+
             {/* 상품 목록*/}
             <div className="container">
                 <div className="row">
@@ -43,20 +54,35 @@ function Home({bowls, setBowls}) {
                     }
                 </div>
             </div>
-            <button onClick={() => {
-                axios.get('https://codingapple1.github.io/shop/data2.json')
-                    .then((response) => {
-                        setBowls([...bowls, ...response.data]);
-                        setClicked(true);
-                    })
-                    .catch((e) => {
-                        console.error("데이터 로딩 실패 : ", e);
-                        alert('데이터를 불러오는데 실패했습니다.')
-                    })
-                    .finally(() => {
-                        setClicked(false);
-                    })
-            }}>더보기</button>
+
+            {/*로딩 UI*/}
+            {loading && <p> 로딩중입니다... </p>}
+
+            {/*더보기 버튼*/}
+            {clickCount < urls.length ? (
+                    <button onClick={() => {
+                        // 로딩 시작
+                        setLoading(true);
+
+                        // 다중 url 요청 시 변수로 저장
+                        axios.get(urls[clickCount])
+                            .then(response => {
+                                setBowls([...bowls, ...response.data]);
+                                setClickCount(clickCount + 1);
+                            })
+                            .catch(e => {
+                                console.log("에러 발생 : ", e);
+                                alert('데이터를 불러오는데 실패했습니다.');
+                            })
+                            .finally(() => 
+                                // 로딩 종료
+                                setLoading(false)
+                            );
+                    }}>더보기</button>
+                )
+                :
+                (<p>더 이상 상품이 없습니다.</p>)
+            }
         </>
     );
 }
@@ -96,7 +122,7 @@ function App() {
         {/*이동된 URL에 대한 라우팅 설정*/}
         <Routes>
             {/*Route의 컴포넌트화*/}
-            <Route path="/" element={<Home bowls={bowls} setBowls = {setBowls}/>}/>
+            <Route path="/" element={<Home bowls = {bowls} setBowls = {setBowls}/>}/>
             <Route path="/detail/:id?" element={<Detail bowls={bowls}/>}/>
             <Route path="*" element={<NotFound/>}/>
 
@@ -110,31 +136,7 @@ function App() {
   );
 }
 
-function Event() {
-    return (
-        <div>
-            <h4>오늘의 이벤트</h4>
-            <Outlet></Outlet>
-        </div>
-    );
-}
 
-function One() {
-    return (
-        <div>
-            <p>볼링공 1+1 이벤트</p>
-        </div>
-    );
-}
-
-
-function Two() {
-    return (
-        <div>
-            <p>볼링화 1+1 이벤트</p>
-        </div>
-    );
-}
 
 
 export default App;

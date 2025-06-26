@@ -3,7 +3,7 @@
 // 상세페이지 컴포넌트화 - URL 파라미터와 데이터 사용
 import {useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
-import {clear} from "@testing-library/user-event/dist/clear";
+import {Nav} from "react-bootstrap";
 
 // 숙제용 컴포넌트
 function SecondTimeOut() {
@@ -14,14 +14,70 @@ function SecondTimeOut() {
     );
 }
 
+// 상세 탭에 관한 컴포넌트
+function CommonTabs({tabs, activeTab, onTabChange}) {
+
+    let [isAnimating, setIsAnimating] = useState(false);
+
+    // activeTab props 에 따라
+    // isAnimating 변수의 boolean 값 조절을 통해 className end를 붙였다 뗏다 처리
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsAnimating(true);
+        }, 50);
+
+        return () => {
+            setIsAnimating(false);
+            clearTimeout(timer);
+        }
+    }, [activeTab]);
+
+    return (
+        <>
+            <Nav defaultActiveKey={`link${activeTab}`} variant="tabs">
+                {tabs.map((tab,index) => (
+                    <Nav.Item key={index}>
+                        <Nav.Link
+                            eventKey={`link${index}`}
+                            onClick={() => { onTabChange(index) }}>
+                            {tab.label}
+                        </Nav.Link>
+                    </Nav.Item>
+                ))}
+            </Nav>
+
+            {/*<div className="tab-content mt-3 start ">*/}
+            <div className={`tab-content mt-3 start ${isAnimating ? 'end' : ''}`}>
+                {
+                    tabs[activeTab]?.content
+                }
+            </div>
+        </>
+    );
+}
+
+
 function Detail({bowls}) {
+    // 파라미터 값 state
     let {id} = useParams();
     let findItem = bowls.find(item => item.id == id);
 
+    // 할인 표시 state
     let [showDisCount, setShowDiscount] = useState(true);
+
+    // input 칸 state와 유효성 체크용 state
     let [inputValue, setInputValue] = useState('');
     let [showWarning, setShowWarning] = useState(false);
 
+    // 내용 탭을 위한 state -> 3가지 종류의 상태를 위해 0으로 미리 지정
+    let [tab, setTab] = useState(0);
+    const tabs = [
+        { label: "상품정보", content: <div>상품 상세 정보입니다.</div> },
+        { label: "리뷰", content: <div>리뷰 내용입니다.</div> },
+        { label: "Q&A", content: <div>Q&A 내용입니다.</div> }
+    ];
+
+    
     //할인 알람 useEffect
     useEffect(() => {
         // 2초 후 할인 알림 숨기기
@@ -85,14 +141,17 @@ function Detail({bowls}) {
                         )
                     }
 
-
                     <h4 className="pt-5">{findItem.title}</h4>
                     <p>{findItem.content}</p>
                     <p>{findItem.price}원</p>
                     <button className="btn btn-danger">주문하기</button>
                 </div>
             </div>
+
+            <CommonTabs tabs={tabs} activeTab={tab} onTabChange={setTab} />
+
         </div>
+
     );
 }
 
