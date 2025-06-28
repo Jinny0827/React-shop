@@ -10,6 +10,7 @@ import Detail from "./routes/Detail";
 import NotFound from "./routes/NotFound";
 import axios from "axios";
 import Event, {One, Two} from "./routes/Event";
+import Cart from "./routes/Cart";
 
 
 // 상품 목록에 대한 컴포넌트화
@@ -124,6 +125,7 @@ function App() {
             {/*Route의 컴포넌트화*/}
             <Route path="/" element={<Home bowls = {bowls} setBowls = {setBowls}/>}/>
             <Route path="/detail/:id?" element={<Detail bowls={bowls}/>}/>
+            <Route path="/cart" element={<Cart/>}/>
             <Route path="*" element={<NotFound/>}/>
 
             {/*Nested Route 테스트*/}

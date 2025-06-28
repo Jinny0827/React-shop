@@ -1,9 +1,11 @@
 /* eslint-disable*/
 
 // 상세페이지 컴포넌트화 - URL 파라미터와 데이터 사용
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
 import {Nav} from "react-bootstrap";
+import {addToCart} from "../store/cartSlice";
+import {useDispatch} from "react-redux";
 
 // 숙제용 컴포넌트
 function SecondTimeOut() {
@@ -15,7 +17,7 @@ function SecondTimeOut() {
 }
 
 // 상세 탭에 관한 컴포넌트
-function CommonTabs({tabs, activeTab, onTabChange}) {
+function CommonTabs({bowls, tabs, activeTab, onTabChange}) {
 
     let [isAnimating, setIsAnimating] = useState(false);
 
@@ -69,6 +71,9 @@ function Detail({bowls}) {
     let [inputValue, setInputValue] = useState('');
     let [showWarning, setShowWarning] = useState(false);
 
+    // Detail 컴포넌트 전체 애니메이션을 위한 state
+    let [isDetailloaded, setIsDetailloaded] = useState(false);
+
     // 내용 탭을 위한 state -> 3가지 종류의 상태를 위해 0으로 미리 지정
     let [tab, setTab] = useState(0);
     const tabs = [
@@ -76,6 +81,43 @@ function Detail({bowls}) {
         { label: "리뷰", content: <div>리뷰 내용입니다.</div> },
         { label: "Q&A", content: <div>Q&A 내용입니다.</div> }
     ];
+
+    // 장바구니 페이지 이동을 위한 함수
+    let dispatch = useDispatch();
+    let navigate = useNavigate();
+    let handleOrder = () => {
+        // 수량 유효성 검사
+        let quantity = parseInt(inputValue);
+
+        if (!quantity || quantity <= 0) {
+            alert('올바른 수량을 입력해주세요!');
+            return;
+        }
+
+        dispatch(
+            addToCart({
+                // 이동한 페이지의 상품 번호(파라미터 = id)
+                id: parseInt(id),
+                name: findItem.title,
+                count: quantity,
+            }));
+
+        if (window.confirm(`${findItem.title} ${quantity}개가 장바구니에 추가되었습니다.`)) {
+            navigate('/cart');
+        }
+    }
+
+
+    // Detail 컴포넌트 마운트 시 fade-in 애니메이션
+    useEffect(() => {
+        let timer = setTimeout(() => {
+            setIsDetailloaded(true);
+        }, 100)
+
+        return () => {
+            clearTimeout(timer);
+        }
+    }, []);
 
     
     //할인 알람 useEffect
@@ -115,7 +157,7 @@ function Detail({bowls}) {
     }
 
     return (
-        <div className="container">
+        <div className={`container start ${isDetailloaded ? 'end' : ''}`}>
             {/*조건부 렌더링*/}
             { showDisCount ? <SecondTimeOut/> : null }
 
@@ -144,7 +186,10 @@ function Detail({bowls}) {
                     <h4 className="pt-5">{findItem.title}</h4>
                     <p>{findItem.content}</p>
                     <p>{findItem.price}원</p>
-                    <button className="btn btn-danger">주문하기</button>
+                    <button className="btn btn-danger"
+                    onClick={handleOrder}>
+                        주문하기
+                    </button>
                 </div>
             </div>
 
