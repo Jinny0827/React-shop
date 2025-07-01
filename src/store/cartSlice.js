@@ -39,7 +39,7 @@ let cartStock = createSlice({
     }
 })
 
-export const {
+export let {
     increasementCount,
     decreasementCount,
     addToCart} = cartStock.actions;
